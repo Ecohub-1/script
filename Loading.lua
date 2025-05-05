@@ -6,5 +6,5 @@ local GameList = {
 
 local ScriptPath = GameList[GameId]
 if ScriptPath then
-    loadstring(game:HttpGet((loadstring(game:HttpGet("https://raw.githubusercontent.com/Ecohub-1/Ecohub-1/refs/heads/main/"%s"):format(ScriptPath)))()
+    loadstring(game:HttpGet(("https://raw.githubusercontent.com/Ecohub-1/Ecohub-1/refs/heads/main/"%s"):format(ScriptPath)))()
 end
