@@ -373,7 +373,7 @@ Tabs.MVP:Input({
 	end
 })
 
-Tabs.MVP:ColorPicker({
+Tabs.MVP:Colorpicker({
 	Title = "เลือกสี Hitbox (Real-Time)",
 	Default = _G.HitboxColor,
 	Callback = function(color)
