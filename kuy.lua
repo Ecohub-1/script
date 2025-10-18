@@ -93,7 +93,7 @@ local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 local root = character:WaitForChild("HumanoidRootPart")
 
-local depth = 20
+local depth = 15
 local noclip = true
 local undergroundPlatform = nil
 
