@@ -28,6 +28,7 @@ local Players = game:GetService("Players")
 local function applyHeadHitbox(character)
 	local head = character:FindFirstChild("Head")
 	if head then
+		head.Anchored = false
 		head.Size = Vector3.new(_G.HeadHitboxSize, _G.HeadHitboxSize, _G.HeadHitboxSize)
 		head.Transparency = 0.7
 		head.Color = _G.HeadHitboxColor
@@ -39,6 +40,7 @@ end
 local function resetHeadHitbox(character)
 	local head = character:FindFirstChild("Head")
 	if head then
+		head.Anchored = false
 		head.Size = Vector3.new(2, 1, 1)
 		head.Transparency = 0
 		head.Color = Color3.fromRGB(163, 162, 165)
@@ -48,10 +50,12 @@ local function resetHeadHitbox(character)
 end
 
 local function updateAllHeadHitboxes()
-	if _G.HitboxEnabled then
-		for _, player in ipairs(Players:GetPlayers()) do
-			if player ~= Players.LocalPlayer and player.Character then
+	for _, player in ipairs(Players:GetPlayers()) do
+		if player ~= Players.LocalPlayer and player.Character then
+			if _G.HitboxEnabled then
 				pcall(applyHeadHitbox, player.Character)
+			else
+				pcall(resetHeadHitbox, player.Character)
 			end
 		end
 	end
@@ -59,6 +63,7 @@ end
 
 local function monitorCharacter(character)
 	if not character then return end
+	task.wait(1)
 	if _G.HitboxEnabled then
 		pcall(applyHeadHitbox, character)
 	else
@@ -66,6 +71,7 @@ local function monitorCharacter(character)
 	end
 	character.ChildAdded:Connect(function(child)
 		if child.Name == "Head" then
+			task.wait(0.5)
 			if _G.HitboxEnabled then
 				pcall(applyHeadHitbox, character)
 			else
@@ -86,24 +92,14 @@ end
 for _, player in ipairs(Players:GetPlayers()) do
 	setupPlayer(player)
 end
-
 Players.PlayerAdded:Connect(setupPlayer)
 
-
 Tabs.MVP:Toggle({
-	Title = "เปิด/ปิด Hitbox หัว",
+	Title = "เปิด / ปิด Hitbox หัว",
 	Default = false,
 	Callback = function(state)
 		_G.HitboxEnabled = state
-		for _, player in ipairs(Players:GetPlayers()) do
-			if player ~= Players.LocalPlayer and player.Character then
-				if state then
-					pcall(applyHeadHitbox, player.Character)
-				else
-					pcall(resetHeadHitbox, player.Character)
-				end
-			end
-		end
+		updateAllHeadHitboxes()
 	end
 })
 
@@ -115,7 +111,9 @@ Tabs.MVP:Input({
 		local size = tonumber(value)
 		if size then
 			_G.HeadHitboxSize = size
-			updateAllHeadHitboxes()
+			if _G.HitboxEnabled then
+				updateAllHeadHitboxes()
+			end
 		end
 	end
 })
@@ -125,9 +123,12 @@ Tabs.MVP:Colorpicker({
 	Default = _G.HeadHitboxColor,
 	Callback = function(color)
 		_G.HeadHitboxColor = color
-		updateAllHeadHitboxes()
+		if _G.HitboxEnabled then
+			updateAllHeadHitboxes()
+		end
 	end
 })
+
 
 for _,v in next, getreg() do
 if type(v) == "thread" then
