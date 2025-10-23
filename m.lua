@@ -24,98 +24,109 @@ _G.HeadHitboxSize = 10
 _G.HeadHitboxColor = Color3.fromRGB(255, 0, 0)
 
 local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local Hitboxes = {}
 
-local function createFakeHitbox(player)
-    if not player.Character then return end
-    local head = player.Character:FindFirstChild("Head")
-    if not head then return end
-    if Hitboxes[player] then return end
-
-    local box = Instance.new("BoxHandleAdornment")
-    box.Adornee = head
-    box.AlwaysOnTop = true
-    box.Size = Vector3.new(_G.HeadHitboxSize, _G.HeadHitboxSize, _G.HeadHitboxSize)
-    box.Transparency = 0.5
-    box.Color3 = _G.HeadHitboxColor
-    box.ZIndex = 10
-    box.Parent = head
-    Hitboxes[player] = box
+local function applyHeadHitbox(character)
+	local head = character:FindFirstChild("Head")
+	if head then
+		head.Size = Vector3.new(_G.HeadHitboxSize, _G.HeadHitboxSize, _G.HeadHitboxSize)
+		head.Transparency = 0.7
+		head.Color = _G.HeadHitboxColor
+		head.Material = Enum.Material.Neon
+		head.CanCollide = false
+	end
 end
 
-local function removeFakeHitbox(player)
-    if Hitboxes[player] then
-        Hitboxes[player]:Destroy()
-        Hitboxes[player] = nil
-    end
+local function resetHeadHitbox(character)
+	local head = character:FindFirstChild("Head")
+	if head then
+		head.Size = Vector3.new(2, 1, 1)
+		head.Transparency = 0
+		head.Color = Color3.fromRGB(163, 162, 165)
+		head.Material = Enum.Material.Plastic
+		head.CanCollide = true
+	end
 end
 
-local function updateFakeHitboxes()
-    for _, player in ipairs(Players:GetPlayers()) do
-        if player ~= Players.LocalPlayer then
-            if _G.HitboxEnabled then
-                if not Hitboxes[player] then
-                    createFakeHitbox(player)
-                else
-                    Hitboxes[player].Size = Vector3.new(_G.HeadHitboxSize, _G.HeadHitboxSize, _G.HeadHitboxSize)
-                    Hitboxes[player].Color3 = _G.HeadHitboxColor
-                end
-            else
-                removeFakeHitbox(player)
-            end
-        end
-    end
+local function updateAllHeadHitboxes()
+	if _G.HitboxEnabled then
+		for _, player in ipairs(Players:GetPlayers()) do
+			if player ~= Players.LocalPlayer and player.Character then
+				pcall(applyHeadHitbox, player.Character)
+			end
+		end
+	end
 end
 
-Players.PlayerAdded:Connect(function(player)
-    player.CharacterAdded:Connect(function()
-        task.wait(1)
-        if _G.HitboxEnabled then
-            createFakeHitbox(player)
-        end
-    end)
-end)
+local function monitorCharacter(character)
+	if not character then return end
+	if _G.HitboxEnabled then
+		pcall(applyHeadHitbox, character)
+	else
+		pcall(resetHeadHitbox, character)
+	end
+	character.ChildAdded:Connect(function(child)
+		if child.Name == "Head" then
+			if _G.HitboxEnabled then
+				pcall(applyHeadHitbox, character)
+			else
+				pcall(resetHeadHitbox, character)
+			end
+		end
+	end)
+end
 
-Players.PlayerRemoving:Connect(function(player)
-    removeFakeHitbox(player)
-end)
+local function setupPlayer(player)
+	if player == Players.LocalPlayer then return end
+	player.CharacterAdded:Connect(monitorCharacter)
+	if player.Character then
+		monitorCharacter(player.Character)
+	end
+end
 
-RunService.RenderStepped:Connect(function()
-    if _G.HitboxEnabled then
-        updateFakeHitboxes()
-    end
-end)
+for _, player in ipairs(Players:GetPlayers()) do
+	setupPlayer(player)
+end
+
+Players.PlayerAdded:Connect(setupPlayer)
+
 
 Tabs.MVP:Toggle({
-    Title = "เปิด / ปิด Hitbox หัว",
-    Default = false,
-    Callback = function(state)
-        _G.HitboxEnabled = state
-        updateFakeHitboxes()
-    end
+	Title = "เปิด/ปิด Hitbox หัว",
+	Default = false,
+	Callback = function(state)
+		_G.HitboxEnabled = state
+		for _, player in ipairs(Players:GetPlayers()) do
+			if player ~= Players.LocalPlayer and player.Character then
+				if state then
+					pcall(applyHeadHitbox, player.Character)
+				else
+					pcall(resetHeadHitbox, player.Character)
+				end
+			end
+		end
+	end
 })
 
 Tabs.MVP:Input({
-    Title = "ขนาดหัว (Hitbox)",
-    Default = tostring(_G.HeadHitboxSize),
-    Numeric = true,
-    Callback = function(value)
-        local size = tonumber(value)
-        if size then
-            _G.HeadHitboxSize = size
-            updateFakeHitboxes()
-        end
-    end
+	Title = "ขนาดหัว (Hitbox)",
+	Default = tostring(_G.HeadHitboxSize),
+	Numeric = true,
+	Callback = function(value)
+		local size = tonumber(value)
+		if size then
+			_G.HeadHitboxSize = size
+			updateAllHeadHitboxes()
+		end
+	end
 })
 
 Tabs.MVP:Colorpicker({
-    Title = "เลือกสี Hitbox หัว (Real-Time)",
-    Default = _G.HeadHitboxColor,
-    Callback = function(color)
-        _G.HeadHitboxColor = color
-        updateFakeHitboxes()
-    end
+	Title = "เลือกสี Hitbox หัว (Real-Time)",
+	Default = _G.HeadHitboxColor,
+	Callback = function(color)
+		_G.HeadHitboxColor = color
+		updateAllHeadHitboxes()
+	end
 })
 
 for _,v in next, getreg() do
@@ -130,6 +141,6 @@ end
 for i,v in next, getallthreads() do
 local s = getscriptfromthread(v)
 if string.find(tostring(s), "<",1,true) then
-print("ok")
+print("k")
 end
-end
+ass")
