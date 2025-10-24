@@ -14,4 +14,3 @@ if string.find(tostring(s), "<",1,true) then
 print("k")
 end
 end
-end
